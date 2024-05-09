@@ -58,11 +58,11 @@ export default class Publish extends SfpCommand {
         SFPStatsSender.logGauge(`scratchorgs.active.remaining`, remainingActiveScratchOrgs, {target_org: devhubUserName});
         SFPStatsSender.logGauge(`scratchorgs.daily.remaining`, remainingDailyScratchOrgs, {target_org: devhubUserName});
 
-        table.push(['sfp.scratchorgs.active.remaining', remainingActiveScratchOrgs, devhubUserName]);
-        table.push(['sfp.scratchorgs.daily.remaining', remainingDailyScratchOrgs, devhubUserName]);
+        table.push(['sfpowerscripts.scratchorgs.active.remaining', remainingActiveScratchOrgs, devhubUserName]);
+        table.push(['sfpowerscripts.scratchorgs.daily.remaining', remainingDailyScratchOrgs, devhubUserName]);
 
         SFPStatsSender.logGauge(`pool.footprint`, nPooledScratchOrgs);
-        table.push(['sfp.pool.footprint', nPooledScratchOrgs, '']);
+        table.push(['sfpowerscripts.pool.footprint', nPooledScratchOrgs, '']);
 
         if (pools) {
             for (let pool of Object.entries(pools)) {
@@ -71,10 +71,10 @@ export default class Publish extends SfpCommand {
                 SFPStatsSender.logGauge('pool.inuse', pool[1].nInUse, { poolName: pool[0] });
                 SFPStatsSender.logGauge('pool.provisioning', pool[1].nProvisioningInProgress, { poolName: pool[0] });
 
-                table.push(['sfp.pool.total', pool[1].nTotal, pool[0]]);
-                table.push(['sfp.pool.available', pool[1].nAvailable, pool[0]]);
-                table.push(['sfp.pool.inuse', pool[1].nInUse, pool[0]]);
-                table.push(['sfp.pool.provisioning', pool[1].nProvisioningInProgress, pool[0]]);
+                table.push(['sfpowerscripts.pool.total', pool[1].nTotal, pool[0]]);
+                table.push(['sfpowerscripts.pool.available', pool[1].nAvailable, pool[0]]);
+                table.push(['sfpowerscripts.pool.inuse', pool[1].nInUse, pool[0]]);
+                table.push(['sfpowerscripts.pool.provisioning', pool[1].nProvisioningInProgress, pool[0]]);
             }
         }
 

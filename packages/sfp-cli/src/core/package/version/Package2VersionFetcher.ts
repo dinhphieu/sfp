@@ -22,7 +22,8 @@ export default class Package2VersionFetcher {
     async fetchByPackage2Id(
         package2Id: string,
         versionNumber?: string,
-        isValidatedPackages?: boolean
+        isValidatedPackages?: boolean,
+        isReleased?: boolean
     ): Promise<Package2Version[]> {
         let query = this.query;
 
@@ -39,6 +40,8 @@ export default class Package2VersionFetcher {
         }
 
         if (isValidatedPackages) whereClause += `and ValidationSkipped = false `;
+        if (isReleased) whereClause += `and IsReleased = true `;
+
 
         whereClause += `and IsDeprecated = false `;
         query += whereClause;
@@ -46,7 +49,7 @@ export default class Package2VersionFetcher {
 
         const records = await QueryHelper.query<Package2Version>(query, this.conn, true);
 
-       
+
         if (records.length > 1) {
             return records.sort((a, b) => {
                 const v1 = `${a.MajorVersion}.${a.MinorVersion}.${a.PatchVersion}-${a.BuildNumber}`;
@@ -67,11 +70,11 @@ export default class Package2VersionFetcher {
     }
 
     async fetchByPackageBranchAndName(
-        packageBranch: string, 
-        packageName: string, 
+        packageBranch: string,
+        packageName: string,
         versionNumber?: string,
         ): Promise<Package2Version[]> {
-            
+
         let query = this.query;
 
         let whereClause: string = `where Branch='${packageBranch}' and Package2.Name ='${packageName}' `;
@@ -90,7 +93,7 @@ export default class Package2VersionFetcher {
         const records = await QueryHelper.query<Package2Version>(query, this.conn, true);
         return records;
 
-    }        
+    }
 }
 
 export interface Package2Version {

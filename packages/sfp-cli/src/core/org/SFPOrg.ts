@@ -6,15 +6,16 @@ import QueryHelper from '../queryHelper/QueryHelper';
 import { convertUsernameToAlias } from '../utils/AliasList';
 import ObjectCRUDHelper from '../utils/ObjectCRUDHelper';
 import InstalledPackagesQueryExecutor from './packageQuery/InstalledPackagesQueryExecutor';
+import dedent from 'dedent';
 
 export default class SFPOrg extends Org {
     /**
      * Get list of all artifacts in an org
      */
-    public async getInstalledArtifacts(orderBy: string = `CreatedDate`,logger?:Logger) {
-        let records=[]
+    public async getInstalledArtifacts(orderBy: string = `CreatedDate`, logger?: Logger) {
+        let records = [];
         try {
-             records = await QueryHelper.query<SfpowerscriptsArtifact2__c>(
+            records = await QueryHelper.query<SfpowerscriptsArtifact2__c>(
                 `SELECT Id, Name, CommitId__c, Version__c, Tag__c FROM SfpowerscriptsArtifact2__c ORDER BY ${orderBy} ASC`,
                 this.getConnection(),
                 false
@@ -74,55 +75,57 @@ export default class SFPOrg extends Org {
      * @param  {SfpPackage} sfpPackage
      */
     public async updateArtifactInOrg(logger: Logger, sfpPackage: SfpPackage): Promise<string> {
-        let artifactId = await this.getArtifactRecordId(sfpPackage);
+        try {
+            let artifactId = await this.getArtifactRecordId(sfpPackage);
 
-        SFPLogger.log(
-            COLOR_KEY_MESSAGE(
-                `Existing artifact record id for ${sfpPackage.packageName} in Org for ${
-                    sfpPackage.package_version_number
-                }: ${artifactId ? artifactId : 'N/A'}`
-            ),
-            LoggerLevel.INFO,
-            logger
-        );
+            SFPLogger.log(
+                COLOR_KEY_MESSAGE(
+                    `Existing artifact record id for ${sfpPackage.packageName} in Org for ${
+                        sfpPackage.package_version_number
+                    }: ${artifactId ? artifactId : 'N/A'}`
+                ),
+                LoggerLevel.INFO,
+                logger
+            );
 
-        let packageName = sfpPackage.package_name;
+            let packageName = sfpPackage.package_name;
 
-        if (artifactId == null) {
-            artifactId = await ObjectCRUDHelper.createRecord(
-                this.getConnection(),
-                'SfpowerscriptsArtifact2__c',
-                {
+            if (artifactId == null) {
+                artifactId = await ObjectCRUDHelper.createRecord(this.getConnection(), 'SfpowerscriptsArtifact2__c', {
                     Name: packageName,
                     Tag__c: sfpPackage.tag,
                     Version__c: sfpPackage.package_version_number,
                     CommitId__c: sfpPackage.sourceVersion,
-                }
-            );
-        } else {
-            artifactId = await ObjectCRUDHelper.updateRecord(
-                this.getConnection(),
-                'SfpowerscriptsArtifact2__c',
-                {
+                });
+            } else {
+                artifactId = await ObjectCRUDHelper.updateRecord(this.getConnection(), 'SfpowerscriptsArtifact2__c', {
                     Id: artifactId,
                     Name: packageName,
                     Tag__c: sfpPackage.tag,
                     Version__c: sfpPackage.package_version_number,
                     CommitId__c: sfpPackage.sourceVersion,
-                }
+                });
+            }
+
+            SFPLogger.log(
+                COLOR_KEY_MESSAGE(
+                    `Updated Org with new Artifact ${packageName} ${sfpPackage.sourceVersion} ${
+                        sfpPackage.package_version_number
+                    } ${artifactId ? artifactId : ''}`
+                ),
+                LoggerLevel.INFO,
+                logger
+            );
+            return artifactId;
+        } catch (error) {
+            SFPLogger.log(dedent(
+                `Unable to fetch any sfp artifacts in the org,skipping updates in the org
+                 - 1. sfp artifact package is not installed in the org
+                 - 2. The required prerequisite object is not deployed to this org`),
+                LoggerLevel.WARN,
+                logger
             );
         }
-
-        SFPLogger.log(
-            COLOR_KEY_MESSAGE(
-                `Updated Org with new Artifact ${packageName} ${sfpPackage.package_version_number} ${
-                    artifactId ? artifactId : ''
-                }`
-            ),
-            LoggerLevel.INFO,
-            logger
-        );
-        return artifactId;
     }
 
     private async getArtifactRecordId(sfpPackage: SfpPackage): Promise<string> {
@@ -192,16 +195,16 @@ export default class SFPOrg extends Org {
     /**
      *  Return all artifacts including sfp as well as external unlocked/managed
      */
-    public async getAllInstalledArtifacts():Promise<InstalledArtifact[]> {
+    public async getAllInstalledArtifacts(): Promise<InstalledArtifact[]> {
         let artifacts = await this.getInstalledArtifacts(`Name`);
-        let installedArtifacts: InstalledArtifact[]=[];
+        let installedArtifacts: InstalledArtifact[] = [];
         let installed2GPPackages = await this.getAllInstalled2GPPackages();
 
         artifacts.forEach((artifact) => {
             let installedArtifact: InstalledArtifact = {
                 name: artifact.Name,
                 version: artifact.Version__c,
-                commitId:artifact.CommitId__c,
+                commitId: artifact.CommitId__c,
                 isInstalledBysfp: true,
             };
             let packageFound = installed2GPPackages.find((elem) => elem.name == artifact.Name);
@@ -242,7 +245,6 @@ const packageQuery =
     'FROM Package2 ' +
     'WHERE IsDeprecated != true ' +
     'ORDER BY NamespacePrefix, Name';
-
 
 export interface InstalledArtifact {
     name: string;

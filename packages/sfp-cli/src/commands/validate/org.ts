@@ -40,15 +40,18 @@ export default class ValidateAgainstOrg extends SfpCommand {
             default: false,
         }),
         disableartifactupdate: Flags.boolean({
-            deprecated: {
-              message: "--disableartifactupdate flag is deprecated, Artifacts used for validation are never recorded in the org "
-            },
             description: messages.getMessage('disableArtifactUpdateFlagDescription'),
             default: false,
         }),
         logsgroupsymbol,
-        basebranch: Flags.string({
-            description: messages.getMessage('baseBranchFlagDescription'),
+        ref: Flags.string({
+            aliases: ['branch'],
+            dependsOn: ['baseRef'],
+            description: messages.getMessage('refFlagDescription'),
+        }),
+        baseRef: Flags.string({
+            aliases: ['basebranch'],
+            description: messages.getMessage('baseRefFlagDescription'),
         }),
         orginfo: Flags.boolean({
             description: messages.getMessage('orgInfoFlagDescription'),
@@ -98,6 +101,13 @@ export default class ValidateAgainstOrg extends SfpCommand {
                 )}`
             )
         );
+        if(this.flags.ref) {
+            SFPLogger.log(COLOR_HEADER(`Ref: ${this.flags.ref}`));
+        }
+        if(this.flags.baseRef) {
+            SFPLogger.log(COLOR_HEADER(`Base Ref: ${this.flags.baseRef}`));
+        }
+
         if (this.flags.mode != ValidationMode.FAST_FEEDBACK) {
             SFPLogger.log(COLOR_HEADER(`Coverage Percentage: ${this.flags.coveragepercent}`));
         }
@@ -119,8 +129,9 @@ export default class ValidateAgainstOrg extends SfpCommand {
                 logsGroupSymbol: this.flags.logsgroupsymbol,
                 targetOrg: this.flags.targetorg,
                 diffcheck: this.flags.diffcheck,
-                baseBranch: this.flags.basebranch,
-                disableArtifactCommit: true,
+                branch: this.flags.ref,
+                baseBranch: this.flags.baseRef,
+                disableArtifactCommit: this.flags.disableartifactupdate,
                 disableSourcePackageOverride: this.flags.disablesourcepkgoverride,
                 disableParallelTestExecution: this.flags.disableparalleltesting,
                 orgInfo: this.flags.orginfo,

@@ -162,7 +162,7 @@ export default class TriggerApexTests {
                     id: testResult.summary.testRunId,
                     message: dedent `Unable to fetch test execution results,
                               Please check the results in the org by using the URL below
-                              https://${this.conn.instanceUrl}/lightning/setup/ApexTestHistory/home
+                              ${this.conn.instanceUrl}/lightning/setup/ApexTestHistory/home
                               Please try the test execution again`,
                 };
             }

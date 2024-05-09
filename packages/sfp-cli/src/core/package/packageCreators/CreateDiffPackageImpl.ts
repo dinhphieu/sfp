@@ -43,12 +43,8 @@ export default class CreateDiffPackageImp extends CreateSourcePackageImpl {
 
         //Fetch Baseline commit from DevHub or the provided org for validation
         let commitsOfPackagesInstalled = {};
-        if (this.packageCreationParams.baselineOrg) {
-            let baselineOrg = await SFPOrg.create({ aliasOrUsername: this.packageCreationParams.baselineOrg });
-            commitsOfPackagesInstalled = await this.getCommitsOfPackagesInstalledInOrg(baselineOrg);
-        } else {
-            commitsOfPackagesInstalled = await this.getCommitsOfPackagesInstalledInOrg(devhubOrg);
-        }
+         commitsOfPackagesInstalled = await this.getCommitsOfPackagesInstalledInOrg(devhubOrg);
+        
 
         if (this.packageCreationParams.revisionFrom) {
             this.sfpPackage.commitSHAFrom = this.packageCreationParams.revisionFrom;

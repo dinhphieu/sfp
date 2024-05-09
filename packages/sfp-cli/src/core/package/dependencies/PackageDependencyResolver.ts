@@ -45,7 +45,7 @@ export default class PackageDependencyResolver {
                 for (let i = 0; i < packageDirectory.dependencies.length; i++) {
                     let dependency = packageDirectory.dependencies[i];
                     if (this.projectConfig.packageAliases[dependency.package] === undefined && !this.isSubscriberPackageVersionId(dependency.package)) {
-                        
+
                         throw new Error(`Can't find package id for dependency: ${dependency.package}, Please ensure that the package is added to sfdx-project.json in your packageAliases`);
                     }
 
@@ -86,7 +86,7 @@ export default class PackageDependencyResolver {
                         delete dependency.versionNumber;
                         delete dependency.branch;
                         continue;
-                        
+
                     }else {
                         package2VersionForDependency = await this.getPackage2VersionForDependency(
                             this.conn,
@@ -94,7 +94,7 @@ export default class PackageDependencyResolver {
                             packageVersionId
                         );
                     }
-                    
+
 
                     if (package2VersionForDependency == null) {
                         packageDirectory.dependencies.splice(i, 1);
@@ -120,6 +120,8 @@ export default class PackageDependencyResolver {
         branch?: string,
     ): Promise<Package2Version> {
 
+        let isReleased = false;
+
         //Dont hit api's if its only for external dependencies
         if (this.projectConfig.packageDirectories.find((dir) => dir.package === dependency.package)) {
             if (this.resolveExternalDepenciesOnly) return null;
@@ -129,7 +131,9 @@ export default class PackageDependencyResolver {
 
         let versionNumber: string = dependency.versionNumber;
         let vers: string[] = versionNumber.split('.');
-        if (vers.length === 4 && vers[3] === 'LATEST') {
+        // fetch only promoted versions
+        if (vers.length === 4 && vers[3] === 'RELEASED') isReleased = true;
+        if (vers.length === 4 && (vers[3] === 'LATEST') || (vers[3] === 'RELEASED')) {
             versionNumber = `${vers[0]}.${vers[1]}.${vers[2]}`;
         }
 
@@ -152,10 +156,11 @@ export default class PackageDependencyResolver {
                 records = await package2VersionFetcher.fetchByPackage2Id(
                     packageVersionId,
                     versionNumber,
-                    true
+                    true,
+                    isReleased
                 );
             }
-            
+
             this.package2VersionCache.set(
                 packageVersionId,
                 versionNumber,
@@ -167,9 +172,15 @@ export default class PackageDependencyResolver {
             );
         }
 
-        if (package2Versions.length === 0) {
+        if (package2Versions.length === 0 && !isReleased) {
             throw new Error(
                 `Failed to find any validated Package2 versions for the dependency ${dependency.package} with version ${dependency.versionNumber}`
+            );
+        }
+
+        if (package2Versions.length === 0 && isReleased) {
+            throw new Error(
+                `Failed to find any promoted Package2 versions for the dependency ${dependency.package} with version ${dependency.versionNumber}`
             );
         }
 
@@ -211,7 +222,7 @@ export default class PackageDependencyResolver {
 
         if (!package2VersionOnCurrentBranch) {
             throw new Error(
-                `Failed to find validated Package2 version for dependency ${dependency.package} with version ${dependency.versionNumber} created from the current branch, 
+                `Failed to find validated Package2 version for dependency ${dependency.package} with version ${dependency.versionNumber} created from the current branch,
                  You will need to create a new version of the package on the current branch to resolve this dependency.`
             );
         }

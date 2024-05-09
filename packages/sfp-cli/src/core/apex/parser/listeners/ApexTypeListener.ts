@@ -3,7 +3,7 @@ import {
     AnnotationContext,
     InterfaceDeclarationContext,
     ClassDeclarationContext,
-} from 'apex-parser';
+} from '@apexdevtools/apex-parser';
 
 export default class ApexTypeListener implements ApexParserListener {
     private apexType: ApexType = {

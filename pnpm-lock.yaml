@@ -127,8 +127,11 @@ importers:
 
     packages/sfp-cli:
         dependencies:
+            '@apexdevtools/apex-parser':
+                specifier: ^4.0.0
+                version: 4.0.0
             '@flxbl-io/apexlink':
-                specifier: ^3.0.1
+                specifier: ^3.1.0
                 version: link:../apexlink
             '@flxbl-io/sfdx-process-wrapper':
                 specifier: ^2.0.1
@@ -175,9 +178,9 @@ importers:
             ajv:
                 specifier: 8.11.0
                 version: 8.11.0
-            apex-parser:
-                specifier: 2.13.0
-                version: 2.13.0
+            antlr4ts:
+                specifier: 0.5.0-alpha.4
+                version: 0.5.0-alpha.4
             async-retry:
                 specifier: ^1.3.1
                 version: 1.3.3
@@ -208,6 +211,9 @@ importers:
             fs-extra:
                 specifier: ^11.1.1
                 version: 11.1.1
+            git-url-parse:
+                specifier: 14.0.0
+                version: 14.0.0
             glob:
                 specifier: ^10.3.3
                 version: 10.3.3
@@ -299,6 +305,9 @@ importers:
             '@types/fs-extra':
                 specifier: 11.0.4
                 version: 11.0.4
+            '@types/git-url-parse':
+                specifier: 9.0.3
+                version: 9.0.3
             '@types/jest':
                 specifier: ^29.5.3
                 version: 29.5.3
@@ -483,6 +492,17 @@ packages:
             '@jridgewell/gen-mapping': 0.3.3
             '@jridgewell/trace-mapping': 0.3.18
         dev: true
+
+    /@apexdevtools/apex-parser@4.0.0:
+        resolution:
+            {
+                integrity: sha512-UMxMYqvfXd4Tbwn660rcRbZ8v4cnTYzB8q2ojVJSsbvGbktawDwxkt2SE2Gv2rhA+q1COZP4u8bNBVtdfA9EVg==,
+            }
+        engines: { node: '>=8.0.0' }
+        dependencies:
+            antlr4ts: 0.5.0-alpha.4
+            node-dir: 0.1.17
+        dev: false
 
     /@babel/code-frame@7.22.5:
         resolution:
@@ -3754,6 +3774,13 @@ packages:
             '@types/node': 10.0.0
         dev: true
 
+    /@types/git-url-parse@9.0.3:
+        resolution:
+            {
+                integrity: sha512-Wrb8zeghhpKbYuqAOg203g+9YSNlrZWNZYvwxJuDF4dTmerijqpnGbI79yCuPtHSXHPEwv1pAFUB4zsSqn82Og==,
+            }
+        dev: true
+
     /@types/glob@8.1.0:
         resolution:
             {
@@ -4724,17 +4751,6 @@ packages:
             normalize-path: 3.0.0
             picomatch: 2.3.1
         dev: true
-
-    /apex-parser@2.13.0:
-        resolution:
-            {
-                integrity: sha512-+k5F0p+7P5wJtJ9FSPqliUX/ao4+kX1SWnYvrU6xvU2A4OrXp6oQ7L8I6I7uhLrL0OhPuUeJXKcX6KaExOEf6w==,
-            }
-        engines: { node: '>=8.0.0' }
-        dependencies:
-            antlr4ts: 0.5.0-alpha.4
-            node-dir: 0.1.17
-        dev: false
 
     /aproba@2.0.0:
         resolution:
@@ -7868,7 +7884,6 @@ packages:
         dependencies:
             is-ssh: 1.4.0
             parse-url: 8.1.0
-        dev: true
 
     /git-url-parse@13.1.0:
         resolution:
@@ -7878,6 +7893,15 @@ packages:
         dependencies:
             git-up: 7.0.0
         dev: true
+
+    /git-url-parse@14.0.0:
+        resolution:
+            {
+                integrity: sha512-NnLweV+2A4nCvn4U/m2AoYu0pPKlsmhK9cknG7IMwsjFY1S2jxM+mAhsDxyxfCIGfGaD+dozsyX4b6vkYc83yQ==,
+            }
+        dependencies:
+            git-up: 7.0.0
+        dev: false
 
     /gitconfiglocal@1.0.0:
         resolution:
@@ -8925,7 +8949,6 @@ packages:
             }
         dependencies:
             protocols: 2.0.1
-        dev: true
 
     /is-stream@2.0.0:
         resolution:
@@ -12730,7 +12753,6 @@ packages:
             }
         dependencies:
             protocols: 2.0.1
-        dev: true
 
     /parse-url@8.1.0:
         resolution:
@@ -12739,7 +12761,6 @@ packages:
             }
         dependencies:
             parse-path: 7.0.0
-        dev: true
 
     /pascal-case@3.1.2:
         resolution:
@@ -13181,7 +13202,6 @@ packages:
             {
                 integrity: sha512-/XJ368cyBJ7fzLMwLKv1e4vLxOju2MNAIokcr7meSaNcVbWz/CPcW22cP04mwxOErdA5mwjA8Q6w/cdAQxVn7Q==,
             }
-        dev: true
 
     /proxy-agent@6.3.1:
         resolution:

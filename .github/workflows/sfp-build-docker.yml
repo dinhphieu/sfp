@@ -110,20 +110,9 @@ jobs:
          repo: ${{ inputs.repo }}
          image: ${{ inputs.image }}
          existing-tag: ${{ env.PKG_VERSION }}-${{ inputs.suffix-tag }}
-         new-tag: ${{ github.ref_name }}
+         new-tag: development
          registry: ghcr.io
          username:   ${{ secrets.username }}
          token: ${{ secrets.token }}
 
 
-   #Tag the image as develop
-    - name: 'Tag Docker'
-      uses: ./.github/actions/tagDocker
-      with:
-         repo: ${{ inputs.repo }}
-         image: ${{ inputs.image }}
-         existing-tag: ${{ env.PKG_VERSION }}-${{ inputs.suffix-tag }}
-         new-tag:  ${{ env.RELEASE_NAME }}
-         registry: ghcr.io
-         username:   ${{ secrets.username }}
-         token: ${{ secrets.token }}

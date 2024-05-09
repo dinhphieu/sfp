@@ -61,6 +61,8 @@ export interface BuildProps {
 	baseBranch?: string;
 	diffOptions?: PackageDiffOptions;
 	includeOnlyPackages?: string[];
+	impactedPackagesAsPerBranch?: Map<string, string[]>;
+	ref?: string;
 }
 export default class BuildImpl {
 	private limiter: Bottleneck;
@@ -80,12 +82,14 @@ export default class BuildImpl {
 
 	private repository_url: string;
 	private commit_id: string;
+	private base_branch_commit_id: string;
 
 	private logger = new ConsoleLogger();
 	private recursiveAll = (a) =>
 		Promise.all(a).then((r) =>
 			r.length == a.length ? r : this.recursiveAll(a),
 		);
+	
 
 	public constructor(private props: BuildProps) {
 		this.limiter = new Bottleneck({
@@ -110,7 +114,9 @@ export default class BuildImpl {
 
 		let git = await Git.initiateRepo(new ConsoleLogger());
 		this.repository_url = await git.getRemoteOriginUrl(this.props.repourl);
-		this.commit_id = await git.getHeadCommit();
+		this.commit_id = this.props.impactedPackagesAsPerBranch? this.props.ref:await git.getHeadCommit();
+		if(this.props.baseBranch)
+		 this.base_branch_commit_id = await git.getBaseBranchCommit(this.props.baseBranch);
 
 		this.packagesToBeBuilt = this.getPackagesToBeBuilt(
 			this.props.projectDirectory,
@@ -134,6 +140,7 @@ export default class BuildImpl {
 				await this.filterPackagesToBeBuiltByChanged(
 					this.props.projectDirectory,
 					this.packagesToBeBuilt,
+					this.props.impactedPackagesAsPerBranch
 				);
 			table = this.createDiffPackageScheduledDisplayedAsATable(
 				packagesToBeBuiltWithReasons,
@@ -263,7 +270,7 @@ export default class BuildImpl {
 	private createDiffPackageScheduledDisplayedAsATable(
 		packagesToBeBuilt: Map<string, any>,
 	) {
-		let tableHead = ["Package", "Reason to be built", "Last Known Tag"];
+		let tableHead = ["Package", "Reason to be built", "Last Known Tag/Commit Id"];
 		if (
 			this.isMultiConfigFilesEnabled &&
 			this.props.currentStage == Stage.BUILD
@@ -327,7 +334,8 @@ export default class BuildImpl {
 
 	private async filterPackagesToBeBuiltByChanged(
 		projectDirectory: string,
-		allPackagesInRepo: any,
+		packagesInRepoFilteredByConfig: any,
+		impactedPackagesAsPerBranch: Map<string, string[]>
 	) {
 		let packagesToBeBuilt = new Map<string, any>();
 		let buildCollections = new BuildCollections(projectDirectory);
@@ -338,7 +346,7 @@ export default class BuildImpl {
 					this.props.currentStage,
 				);
 
-		for await (const pkg of allPackagesInRepo) {
+		for await (const pkg of packagesInRepoFilteredByConfig) {
 			let diffImpl: PackageDiffImpl = new PackageDiffImpl(
 				new ConsoleLogger(),
 				pkg,
@@ -347,11 +355,17 @@ export default class BuildImpl {
 			);
 			let packageDiffCheck = await diffImpl.exec();
 
-			if (packageDiffCheck.isToBeBuilt) {
+
+			let isPackageImpacted = impactedPackagesAsPerBranch
+				? impactedPackagesAsPerBranch.get(pkg)
+				: false;
+
+			if (isPackageImpacted || packageDiffCheck.isToBeBuilt) {
 				packagesToBeBuilt.set(pkg, {
-					reason: packageDiffCheck.reason,
+					reason: isPackageImpacted?'Found change(s) in package':packageDiffCheck.reason,
 					tag: packageDiffCheck.tag,
 				});
+
 				//Add Bundles
 				if (buildCollections.isPackageInACollection(pkg)) {
 					buildCollections
@@ -391,8 +405,11 @@ export default class BuildImpl {
 
 		//Filter Packages
 		if (includeOnlyPackages) {
-			//Display include only packages
+			//Display include only packages only on stages other than validate
+			//Validate would have already printed it
+			if(this.props.currentStage != Stage.VALIDATE){
 			printIncludeOnlyPackages();
+			}
 			packageDescriptors = packageDescriptors.filter((pkg) => {
 				if (
 					includeOnlyPackages.find((includedPkg) => {
@@ -423,11 +440,11 @@ export default class BuildImpl {
 				COLOR_KEY_MESSAGE(
 					`Build will include the below packages release configs (domain(s))(domain)`,
 				),
-				LoggerLevel.TRACE,
+				LoggerLevel.INFO,
 			);
 			SFPLogger.log(
 				COLOR_KEY_VALUE(`${includeOnlyPackages.toString()}`),
-				LoggerLevel.TRACE,
+				LoggerLevel.INFO,
 			);
 		}
 	}
@@ -754,6 +771,9 @@ export default class BuildImpl {
 
 
 
+		let isPackageImpacted = this.props.impactedPackagesAsPerBranch
+		? this.props.impactedPackagesAsPerBranch.get(sfdx_package)
+		: true;
 
 		return SfpPackageBuilder.buildPackageFromProjectDirectory(
 			new FileLogger(`.sfpowerscripts/logs/${sfdx_package}`),
@@ -762,7 +782,7 @@ export default class BuildImpl {
 			{
 				overridePackageTypeWith: this.props.overridePackageTypes ? this.props.overridePackageTypes[sfdx_package] : undefined,
 				branch: this.props.branch,
-				sourceVersion: this.commit_id,
+				sourceVersion: isPackageImpacted?this.commit_id:this.base_branch_commit_id,
 				repositoryUrl: this.repository_url,
 				configFilePath: configFilePath,
 				pathToReplacementForceIgnore: this.getPathToForceIgnoreForCurrentStage(

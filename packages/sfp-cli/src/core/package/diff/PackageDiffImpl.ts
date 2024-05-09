@@ -2,12 +2,13 @@ const fs = require('fs');
 const path = require('path');
 import Git from '../../git/Git';
 import IgnoreFiles from '../../ignore/IgnoreFiles';
-import SFPLogger, { COLOR_ERROR, COLOR_KEY_MESSAGE, Logger, LoggerLevel } from '@flxbl-io/sfp-logger';
+import SFPLogger, { COLOR_ERROR, COLOR_KEY_MESSAGE, COLOR_WARNING, Logger, LoggerLevel } from '@flxbl-io/sfp-logger';
 import ProjectConfig from '../../project/ProjectConfig';
 import GitTags from '../../git/GitTags';
 import lodash = require('lodash');
 import { EOL } from 'os';
 import { PackageType } from '../SfpPackage';
+import dedent from 'dedent';
 
 export class PackageDiffOptions {
     skipPackageDescriptorChange?: boolean = false;
@@ -15,9 +16,10 @@ export class PackageDiffOptions {
     useLatestGitTags?:boolean=true;
     packagesMappedToLastKnownCommitId?: { [p: string]: string };
     pathToReplacementForceIgnore?: string;
-    useBranchCompare?: boolean = false;
+    useBranchCompare?: boolean = false; // Compare among branches
     branch?: string;
     baseBranch?: string;
+    fallBackToNoTag?: boolean = false;
 }
 
 export default class PackageDiffImpl {
@@ -65,11 +67,21 @@ export default class PackageDiffImpl {
                  modified_files = await git.diff([`${tag}`, `HEAD`, `--no-renames`, `--name-only`]);
                 }
             } catch (error) {
+                if(this.diffOptions?.fallBackToNoTag)
+                {
+                    SFPLogger.log(COLOR_WARNING(dedent(`Unable to compute diff, 
+                    The head of the branch is not reachable from the commit id ${tag} for ${this.sfdx_package}
+                    Attempting to build the package without diffing against the previous version`)),LoggerLevel.INFO,this.logger);
+                    return { isToBeBuilt: true, reason: `Previous version is from an earlier branch` };
+                }
+                else
+                {
                 SFPLogger.log(COLOR_ERROR(`Unable to compute diff, The head of the branch is not reachable from the commit id ${tag}`));
-                SFPLogger.log(COLOR_ERROR(`Check your current branch (in case of build) or the scratch org in case of validate command`));
+                SFPLogger.log(COLOR_ERROR(`Check your current branch (in case of build) or the review org in case of validate command`));
                 SFPLogger.log(COLOR_ERROR(`Actual error received:`));
                 SFPLogger.log(COLOR_ERROR(error));
-                throw new Error(`Failed to compute git diff for package ${this.sfdx_package} against commit id ${tag}`)
+                 throw new Error(`Failed to compute git diff for package ${this.sfdx_package} against commit id ${tag}`)
+                }
             }
 
             let packageType: string = ProjectConfig.getPackageType(projectConfig, this.sfdx_package);

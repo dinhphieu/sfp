@@ -1,6 +1,7 @@
 import * as fs from 'fs-extra';
 const path = require('path');
 const { globSync } = require('glob');
+import { CharStreams } from 'antlr4ts';
 
 import ApexTypeListener from './listeners/ApexTypeListener';
 
@@ -12,7 +13,7 @@ import {
     ThrowingErrorListener,
     CommonTokenStream,
     ParseTreeWalker,
-} from 'apex-parser';
+} from '@apexdevtools/apex-parser';
 import SFPLogger, { LoggerLevel } from '@flxbl-io/sfp-logger';
 import { ApexClasses } from '../../package/SfpPackage';
 
@@ -51,7 +52,7 @@ export default class ApexTypeFetcher {
             // Parse cls file
             let compilationUnitContext;
             try {
-                let lexer = new ApexLexer(new CaseInsensitiveInputStream(clsFile, clsPayload));
+                let lexer = new ApexLexer(new CaseInsensitiveInputStream(CharStreams.fromString(clsPayload)));
                 let tokens: CommonTokenStream = new CommonTokenStream(lexer);
 
                 let parser = new ApexParser(tokens);

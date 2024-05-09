@@ -29,6 +29,10 @@ export default class Git {
         return this._git.revparse(['HEAD']);
     }
 
+    async getBaseBranchCommit(baseBranch:string): Promise<string> {
+        return this._git.revparse([baseBranch]);
+    }
+
     async show(options: string[]): Promise<string> {
         return this._git.show(options);
     }
