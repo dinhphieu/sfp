@@ -169,4 +169,20 @@ export default class OrgInfoDisplayer {
 
   }
 
+    public static writeOrgInfoToJson(org: SFPOrg): void {
+        const pathToJsonFile = `org-info.json`;
+        const fileOutputHandler = FileOutputHandler.getInstance();
+
+        let orgInfo = {
+            orgId: org.getOrgId(),
+            // loginUrl: scratchOrg.loginURL,
+            username: org.getUsername(),
+            // password: scratchOrg.password,
+            // expiryDate: scratchOrg.expiryDate,
+            // sfdxAthUrl: scratchOrg.sfdxAuthUrl,
+            frontDoorUrl: org.getConnection().getAuthInfo().getOrgFrontDoorUrl()
+        };
+
+        fileOutputHandler.writeOutput(pathToJsonFile, JSON.stringify(orgInfo, null, 2));
+    }
 }

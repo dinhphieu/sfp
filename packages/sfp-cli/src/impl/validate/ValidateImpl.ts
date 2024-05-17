@@ -109,6 +109,7 @@ export default class ValidateImpl implements PostDeployHook, PreDeployHook {
             if (this.props.orgInfo && this.props.validateAgainst === ValidateAgainst.PROVIDED_ORG) {
                 OrgInfoDisplayer.printOrgInfo(this.orgAsSFPOrg);
                 OrgInfoDisplayer.writeOrgInfoToMarkDown(this.orgAsSFPOrg);
+                OrgInfoDisplayer.writeOrgInfoToJson(this.orgAsSFPOrg);
             }
 
             //Fetch Artifacts in the org
