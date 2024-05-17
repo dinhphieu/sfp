@@ -101,9 +101,11 @@ export default class OrgInfoDisplayer {
 
   }
 
-    public static writeScratchOrgInfoToJson(scratchOrg: ScratchOrg): void {
+    public static async writeScratchOrgInfoToJson(scratchOrg: ScratchOrg): Promise<void> {
       const pathToJsonFile = `org-info.json`;
       const fileOutputHandler = FileOutputHandler.getInstance();
+
+      const orgAsSFPOrg = await SFPOrg.create({ aliasOrUsername: scratchOrg.username });
 
       let orgInfo = {
         orgId: scratchOrg.orgId,
@@ -111,7 +113,8 @@ export default class OrgInfoDisplayer {
         username: scratchOrg.username,
         password: scratchOrg.password,
         expiryDate: scratchOrg.expiryDate,
-        sfdxAthUrl: scratchOrg.sfdxAuthUrl
+        sfdxAthUrl: scratchOrg.sfdxAuthUrl,
+        frontDoorUrl: orgAsSFPOrg.getConnection().getAuthInfo().getOrgFrontDoorUrl()
       };
 
       fileOutputHandler.writeOutput(pathToJsonFile, JSON.stringify(orgInfo, null, 2));
@@ -179,7 +182,7 @@ export default class OrgInfoDisplayer {
             username: org.getUsername(),
             // password: scratchOrg.password,
             // expiryDate: scratchOrg.expiryDate,
-            // sfdxAthUrl: scratchOrg.sfdxAuthUrl,
+            sfdxAthUrl: org.getConnection().getAuthInfo().getSfdxAuthUrl(),
             frontDoorUrl: org.getConnection().getAuthInfo().getOrgFrontDoorUrl()
         };
 
