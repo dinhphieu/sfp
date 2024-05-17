@@ -170,6 +170,13 @@ export default class OrgInfoDisplayer {
     tableData.table.body.push([`Login to the org`, `[Click Here](${org.getConnection().getAuthInfo().getOrgFrontDoorUrl()})`]);
     fileOutputHandler.appendOutput(pathToMarkDownFile, `\n\n${getMarkdownTable(tableData)}`);
 
+  fileOutputHandler.appendOutput(pathToMarkDownFile,
+      `\n\nYou may use the following commands to authenticate to the org`,);
+  fileOutputHandler.appendOutput(pathToMarkDownFile, `\`\`\``);
+  fileOutputHandler.appendOutput(pathToMarkDownFile, `echo ${org.getConnection().getAuthInfo().getSfdxAuthUrl()} > ./authfile`);
+  fileOutputHandler.appendOutput(pathToMarkDownFile, `sf org login sfdx-url --sfdx-url-file=authfile`);
+  fileOutputHandler.appendOutput(pathToMarkDownFile, `sf org open --target-org=${org.getUsername()}`);
+  fileOutputHandler.appendOutput(pathToMarkDownFile, `\`\`\``);
   }
 
     public static writeOrgInfoToJson(org: SFPOrg): void {
