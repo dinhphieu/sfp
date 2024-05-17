@@ -185,10 +185,10 @@ export default class OrgInfoDisplayer {
 
         let orgInfo = {
             orgId: org.getOrgId(),
-            // loginUrl: scratchOrg.loginURL,
+            loginUrl: org.getConnection().loginUrl,
             username: org.getUsername(),
-            // password: scratchOrg.password,
-            // expiryDate: scratchOrg.expiryDate,
+            password: org.getConnection().getAuthInfoFields().password,
+            expiryDate: org.getConnection().getAuthInfoFields().expirationDate,
             sfdxAthUrl: org.getConnection().getAuthInfo().getSfdxAuthUrl(),
             frontDoorUrl: org.getConnection().getAuthInfo().getOrgFrontDoorUrl()
         };
