@@ -14,5 +14,6 @@ export default interface ScratchOrg {
     instanceURL?: string;
     status?: string;
     sfdxAuthUrl?: string;
-    elapsedTime?:number
+    elapsedTime?: number;
+    pullRequest?: string;
 }
